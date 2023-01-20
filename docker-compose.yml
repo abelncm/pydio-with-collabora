@@ -1,0 +1,92 @@
+version: '3.7'
+services:
+
+  # pihole:
+  #   image: pihole/pihole:latest
+  #   ports:
+  #     - "85:85/tcp"
+  #   environment:
+  #     TZ: 'Atlantic/Cape_Verde'
+  #     WEBPASSWORD: 'admin'
+  #     WEB_PORT: 85
+  #   volumes:
+  #     - './pihole/etc-pihole:/etc/pihole'
+  #     - './pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+  #   restart: unless-stopped
+
+  # httpd:
+  #   image: httpd
+  #   restart: always
+  #   volumes:
+  #     - ./conf:/usr/local/apache2/conf
+  #     - ./certs:/usr/local/apache2/conf/
+  #   network_mode: "host"
+
+
+  nginx:
+    image: nginx
+    restart: always
+    volumes:
+      - ./nginx2.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/letsencrypt/live/local.docs
+    network_mode: "host"
+    
+
+  # caddy:
+  #   image: caddy:alpine
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile
+  #   # ports:
+  #   #   - 80:80
+  #   #   - 443:443
+  #   network_mode: "host"
+
+
+  cells:
+    image: pydio/cells:latest
+    restart: unless-stopped
+    network_mode: "host"
+    # ports:
+    #   - 8080:8080
+    volumes:
+      - cellsdir:/var/cells
+      - data:/var/cells/data
+    # dns:
+    #   - "pihole"
+
+  mysql:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: P@ssw0rd
+      MYSQL_DATABASE: cells
+      MYSQL_USER: pydio
+      MYSQL_PASSWORD: P@ssw0rd
+    command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
+    volumes:
+      - mysqldir:/var/lib/mysql
+    network_mode: "host"
+    
+
+  collabora:
+    image: collabora/code:latest
+    privileged: true
+    cap_add:
+      - MKNOD
+    restart: always
+    network_mode: "host"
+    # ports:
+    #   - 9980:9980
+    environment:
+      - username=admin
+      - password=admin
+      - domain=local\.docs
+      # - extra_params=--o:ssl.enable=false
+    # dns:
+    #   - "pihole"
+  
+volumes:
+    data: {}
+    cellsdir: {}
+    mysqldir: {}

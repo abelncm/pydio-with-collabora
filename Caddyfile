@@ -1,0 +1,33 @@
+local.docs {
+    tls internal
+
+    @collabora {
+        path /browser/* # Loleaflet is the client part of LibreOffice Online
+        path /hosting/discovery # WOPI discovery URL
+        path /hosting/capabilities # Show capabilities as json
+        path /cool/* # Main websocket, uploads/downloads, presentations
+    }
+
+    reverse_proxy localhost:8080 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+
+    route @collabora {
+        reverse_proxy localhost:9980 {
+            transport http {
+                tls_insecure_skip_verify
+            }
+        }
+    }
+}
+
+# local.office {
+#     tls internal
+#     reverse_proxy localhost:9980 {
+#         transport http {
+#             tls_insecure_skip_verify
+#         }
+#     }
+# }
